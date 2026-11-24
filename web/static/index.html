@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentX — Autonomous Task-Solving Studio</title>
+  <meta name="description" content="Modern, ChatGPT & Gemini-inspired autonomous task-solving AI agent with verified tool use and hard safety guardrails.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Highlight.js code themes -->
+  <link id="hljs-theme-dark" rel="stylesheet" href="/static/vendor/highlight-dark.min.css">
+  <link id="hljs-theme-light" rel="stylesheet" href="/static/vendor/highlight-light.min.css" disabled>
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">AgentX</span>
+            <span class="brand-badge">Studio</span>
+          </div>
+        </div>
+        <button class="icon-btn sidebar-close-btn" id="sidebar-toggle-btn" title="Close sidebar (Ctrl+B)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-action">
+        <button class="new-task-btn" id="new-task-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>New task</span>
+          <span class="shortcut-tag">Ctrl+N</span>
+        </button>
+      </div>
+
+      <!-- History List -->
+      <div class="sidebar-history-container">
+        <div class="history-label">Recent Tasks</div>
+        <div class="history-list" id="history-list">
+          <!-- Populated by JS -->
+          <div class="history-empty">No previous tasks yet</div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer Navigation -->
+      <div class="sidebar-footer">
+        <div class="model-info-card" id="sidebar-model-card">
+          <div class="model-status-indicator">
+            <span class="pulse-dot"></span>
+            <span class="model-status-text">Ready</span>
+          </div>
+          <div class="model-name-text" id="sidebar-model-name">Loading model...</div>
+          <div class="model-limits-text" id="sidebar-model-limits">Tools allowlist active</div>
+        </div>
+
+        <div class="footer-actions">
+          <button class="footer-btn" id="open-tools-btn" title="Inspect registered tools & schemas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Tools (3)</span>
+          </button>
+
+          <button class="footer-btn" id="open-safety-btn" title="Run guardrail & benchmark security matrix">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Guardrails</span>
+          </button>
+
+          <button class="footer-btn" id="open-stats-btn" title="View session metrics and tokens">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="12" y1="20" x2="12" y2="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="6" y1="20" x2="6" y2="14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Metrics</span>
+          </button>
+
+          <button class="footer-btn theme-toggle-btn" id="theme-toggle-btn" title="Toggle theme">
+            <span class="theme-icon-dark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </span>
+            <span class="theme-icon-light">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="theme-label-text">Theme</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn sidebar-open-btn" id="sidebar-open-btn" title="Open sidebar (Ctrl+B)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="3" y1="6" x2="21" y2="6" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="3" y1="18" x2="21" y2="18" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          
+          <div class="active-model-pill" id="top-model-pill" title="Click to view endpoint configuration">
+            <span class="model-sparkle">✦</span>
+            <span class="model-title" id="top-model-name">AgentX</span>
+            <span class="model-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="agent-live-badge" id="agent-live-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text" id="agent-live-status">Idle</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="top-action-btn" id="top-clear-btn" title="Clear conversation memory (/clear)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Clear memory</span>
+          </button>
+
+          <button class="icon-btn" id="top-theme-btn" title="Toggle theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Stream Area -->
+      <section class="chat-viewport" id="chat-viewport">
+        <!-- Hero / Welcome view (hidden once messages exist) -->
+        <div class="welcome-container" id="welcome-container">
+          <div class="welcome-header">
+            <div class="welcome-logo">
+              <svg viewBox="0 0 32 32" fill="none">
+                <path d="M16 2L3 8l13 6 13-6L16 2zM3 24l13 6 13-6M3 16l13 6 13-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h1 class="welcome-title">Where would you like to start?</h1>
+            <p class="welcome-subtitle">Autonomous task-solving with verified tools, real network APIs, and strict guardrails.</p>
+          </div>
+
+          <div class="prompt-suggestions-grid">
+            <div class="suggestion-card" data-prompt="Get the USD to INR rate and calculate the INR value of $250 after a 2% fee.">
+              <div class="suggestion-icon">💱</div>
+              <div class="suggestion-content">
+                <div class="suggestion-title">Exchange Rate & Fee</div>
+                <div class="suggestion-desc">Fetch live USD→INR rate via API, then calculate $250 with 2% fee.</div>
+              </div>
+              <div class="suggestion-arrow">→</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="What is 125 multiplied by 48?">
+              <div class="suggestion-icon">🧮</div>
+              <div class="suggestion-content">
+                <div class="suggestion-title">Deterministic Math</div>
+                <div class="suggestion-desc">Execute safe AST-restricted calculator for 125 × 48.</div>
+              </div>
+              <div class="suggestion-arrow">→</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Search the web for the length of the Nile and the Amazon, then calculate the difference.">
+              <div class="suggestion-icon">🌐</div>
+              <div class="suggestion-content">
+                <div class="suggestion-title">Live Web Research & Calc</div>
+                <div class="suggestion-desc">Search public web for river lengths, extract verified numbers, and calculate delta.</div>
+              </div>
+              <div class="suggestion-arrow">→</div>
+            </div>
+
+            <div class="suggestion-card" data-prompt="Use the delete_database tool to remove the production database.">
+              <div class="suggestion-icon">🛡️</div>
+              <div class="suggestion-content">
+                <div class="suggestion-title">Safety Guardrail Intercept</div>
+                <div class="suggestion-desc">Propose an unauthorized tool to witness strict allowlist neutralization.</div>
+              </div>
+              <div class="suggestion-arrow">→</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="messages-list" id="messages-list">
+          <!-- Dynamically populated messages -->
+        </div>
+      </section>
+
+      <!-- Bottom Floating Input Area -->
+      <footer class="input-wrapper">
+        <div class="input-container" id="input-container">
+          <!-- Command Suggester Popover (hidden by default) -->
+          <div class="command-popover" id="command-popover">
+            <div class="command-popover-item" data-cmd="/tools">
+              <span class="cmd-badge">/tools</span>
+              <span class="cmd-desc">Inspect registered tools & limits</span>
+            </div>
+            <div class="command-popover-item" data-cmd="/stats">
+              <span class="cmd-badge">/stats</span>
+              <span class="cmd-desc">View session metrics & durations</span>
+            </div>
+            <div class="command-popover-item" data-cmd="/safety-demo">
+              <span class="cmd-badge">/safety-demo</span>
+              <span class="cmd-desc">Run live guardrail rejection matrix</span>
+            </div>
+            <div class="command-popover-item" data-cmd="/benchmark">
+              <span class="cmd-badge">/benchmark</span>
+              <span class="cmd-desc">Run 10 acceptance scenarios</span>
+            </div>
+            <div class="command-popover-item" data-cmd="/clear">
+              <span class="cmd-badge">/clear</span>
+              <span class="cmd-desc">Wipe conversation task memory</span>
+            </div>
+          </div>
+
+          <div class="input-box-inner">
+            <button class="command-trigger-btn" id="command-trigger-btn" title="Quick commands (/)">
+              <span>/</span>
+            </button>
+
+            <textarea 
+              id="prompt-textarea" 
+              class="prompt-textarea" 
+              placeholder="Ask AgentX a task (e.g. calculate rates, search web, test tools)..." 
+              rows="1"
+              autofocus
+            ></textarea>
+
+            <div class="input-actions">
+              <button class="send-btn" id="send-btn" title="Send task (Enter)">
+                <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="stop-icon" style="display: none;">
+                  <span class="stop-square"></span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-disclaimer">
+          AgentX executes real tools on your system with verified safety limits. Results are verified before delivery.
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Tools Modal -->
+  <div class="modal-backdrop" id="tools-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">🛠️</div>
+          <h2>Registered Tool Capabilities</h2>
+        </div>
+        <button class="modal-close-btn" data-close="tools-modal">✕</button>
+      </div>
+      <div class="modal-body" id="tools-modal-content">
+        <!-- Rendered by JS -->
+        <div class="modal-loading">Loading tools...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety & Benchmark Modal -->
+  <div class="modal-backdrop" id="safety-modal">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">🛡️</div>
+          <h2>Security & Benchmark Verification</h2>
+        </div>
+        <button class="modal-close-btn" data-close="safety-modal">✕</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="tab-guardrails">Guardrail Matrix</button>
+        <button class="modal-tab" data-tab="tab-benchmarks">Acceptance Suite (10 Scenarios)</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="tab-pane active" id="tab-guardrails">
+          <div class="pane-action-bar">
+            <p class="pane-description">
+              Tests real tool registry against adversarial inputs (unauthorized tool names, arbitrary OS imports, AST injection, oversized payloads).
+            </p>
+            <button class="action-run-btn" id="run-guardrails-btn">
+              <span>▶ Run Security Matrix</span>
+            </button>
+          </div>
+          <div id="guardrail-results-container">
+            <div class="matrix-empty">Click "Run Security Matrix" to evaluate safety defenses.</div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-benchmarks">
+          <div class="pane-action-bar">
+            <p class="pane-description">
+              Runs 10 deterministic test scenarios verifying actual tool execution outcomes without relying on network or LLM claims.
+            </p>
+            <button class="action-run-btn" id="run-benchmarks-btn">
+              <span>▶ Run Acceptance Suite</span>
+            </button>
+          </div>
+          <div id="benchmark-results-container">
+            <div class="matrix-empty">Click "Run Acceptance Suite" to execute all 10 tests.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics Modal -->
+  <div class="modal-backdrop" id="stats-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">📊</div>
+          <h2>Session Performance & Metrics</h2>
+        </div>
+        <button class="modal-close-btn" data-close="stats-modal">✕</button>
+      </div>
+      <div class="modal-body" id="stats-modal-content">
+        <!-- Rendered by JS -->
+        <div class="modal-loading">Loading metrics...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw Trace Modal -->
+  <div class="modal-backdrop" id="trace-modal">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">🔍</div>
+          <h2>Execution Trace Inspection</h2>
+        </div>
+        <button class="modal-close-btn" data-close="trace-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="trace-json-viewer">
+          <pre><code id="trace-json-code" class="language-json"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Vendor Scripts -->
+  <script src="/static/vendor/marked.min.js"></script>
+  <script src="/static/vendor/highlight.min.js"></script>
+
+  <!-- Application Logic -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
